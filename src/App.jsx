@@ -382,10 +382,11 @@ Do not include any other text, explanations, or markdown formatting.`
 
     } catch (error) {
       console.error('Error analyzing food:', error);
+      console.error('Error details:', error.message);
       if (error.message.includes('JSON')) {
         alert('Failed to parse AI response. Please try again!');
       } else if (error.message.includes('network') || error.message.includes('fetch')) {
-        alert('Network error. Please check your internet connection!');
+        alert('Network error: Please check your OpenAI API key in .env.local file');
       } else {
         alert(`Error: ${error.message || 'Something went wrong. Please check your API key and try again!'}`);
       }
@@ -459,7 +460,7 @@ Do not include any other text, explanations, or markdown formatting.`
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-3xl shadow-xl p-8 mb-6">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-gray-900">🔐 Account & Profile</h1>
+              <h1 className="text-3xl font-bold text-gray-900">🔐 Account</h1>
               <button
                 onClick={() => setCurrentPage('home')}
                 className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-all font-semibold"
@@ -468,7 +469,7 @@ Do not include any other text, explanations, or markdown formatting.`
               </button>
             </div>
           </div>
-          <Profile />
+          <Profile onSignInSuccess={() => setCurrentPage('home')} />
         </div>
       </div>
     );
@@ -868,7 +869,8 @@ Do not include any other text, explanations, or markdown formatting.`
         </div>
 
         {/* Add Meal Section */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 mb-6">
+        {user ? (
+          <div className="bg-white rounded-3xl shadow-xl p-8 mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">📸 Add New Meal</h2>
           
           <div className="mb-6">
@@ -975,9 +977,11 @@ Do not include any other text, explanations, or markdown formatting.`
             </button>
           </div>
         </div>
+        ) : null}
 
         {/* Meals List */}
-        <div className="space-y-4">
+        {user ? (
+          <div className="space-y-4">
           {meals.length === 0 ? (
             <div className="bg-white rounded-3xl shadow-xl p-12 text-center text-gray-500">
               <p className="text-lg font-medium">No meals logged yet today.</p>
@@ -1015,6 +1019,7 @@ Do not include any other text, explanations, or markdown formatting.`
             ))
           )}
         </div>
+        ) : null}
       </div>
     </div>
   );
