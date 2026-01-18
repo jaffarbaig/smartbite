@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Trash2, Loader, User, Settings, Home, TrendingUp } from 'lucide-react';
 import Profile from './Profile';
+import { supabase } from './lib/supabaseClient';
 
 if (!window.storage) {
   window.storage = {
@@ -24,9 +25,10 @@ export default function SmartBite() {
   const [apiKey, setApiKey] = useState('');
   const [manualCalories, setManualCalories] = useState('');
   const [manualPortion, setManualPortion] = useState('');
+  const [user, setUser] = useState(null);
 
-  // Hardcoded OpenAI API key for AI analysis
-  const OPENAI_API_KEY = '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'; // Replace with your actual OpenAI API key
+  // OpenAI API key from environment variables
+  const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
   // Form states for profile
   const [age, setAge] = useState('');
@@ -38,6 +40,22 @@ export default function SmartBite() {
   const [weight, setWeight] = useState('');
   const [activityLevel, setActivityLevel] = useState('moderate');
   const [goal, setGoal] = useState('maintain');
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription?.unsubscribe();
+  }, []);
 
   // Load data from storage
   useEffect(() => {
@@ -667,7 +685,7 @@ Do not include any other text, explanations, or markdown formatting.`
             </div>
           </div>
 
-          {profile ? (
+          {profile && user ? (
             <>
               {/* BMI Display */}
               <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 mb-5">
@@ -824,6 +842,17 @@ Do not include any other text, explanations, or markdown formatting.`
                 <p className="text-xs mt-2 opacity-90">{mealEstimateText}</p>
               </div>
             </>
+          ) : !user ? (
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
+              <p className="text-red-900 font-bold mb-3 text-lg">🔐 Login Required</p>
+              <p className="text-red-700 text-base mb-4 leading-relaxed">Please log in to view your BMI, track meals, and access all features.</p>
+              <button
+                onClick={() => setCurrentPage('auth')}
+                className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-pink-600 transition-all font-semibold shadow-md"
+              >
+                Login / Sign Up
+              </button>
+            </div>
           ) : (
             <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6">
               <p className="text-amber-900 font-bold mb-3 text-lg">👋 Welcome!</p>
